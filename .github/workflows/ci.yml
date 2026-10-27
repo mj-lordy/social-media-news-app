@@ -1,0 +1,56 @@
+
+name: Social Media App CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: client
+
+  backend:
+    name: Backend Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Check JavaScript syntax
+        run: |
+          find . -path './node_modules' -prune -o \
+            -name '*.js' -type f -print0 |
+            xargs -0 -r -n1 node --check
+        working-directory: server
